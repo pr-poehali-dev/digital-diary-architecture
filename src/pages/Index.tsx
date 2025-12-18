@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import AuthForm from '@/components/AuthForm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,11 +31,53 @@ const achievements = [
 ];
 
 const Index = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [records, setRecords] = useState<DayRecord[]>([
     { date: '2025-12-18', mood: 'Отлично', emoji: '😊', note: 'Начал работу над проектом мечты!', color: 'bg-pastel-green' },
     { date: '2025-12-17', mood: 'Хорошо', emoji: '😌', note: 'Продуктивный день', color: 'bg-pastel-blue' },
     { date: '2025-12-16', mood: 'Нормально', emoji: '😐', note: 'Обычный день', color: 'bg-pastel-yellow' },
   ]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (token && savedUser) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(savedUser));
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleAuthSuccess = (token: string, userData: { id: number; email: string }) => {
+    setIsAuthenticated(true);
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pastel-purple via-pastel-pink to-pastel-blue">
+        <div className="text-center">
+          <Icon name="Loader2" size={48} className="animate-spin text-primary mx-auto mb-4" />
+          <p className="text-lg text-muted-foreground">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AuthForm onSuccess={handleAuthSuccess} />;
+  }
 
   const [currentNote, setCurrentNote] = useState('');
   const [selectedMood, setSelectedMood] = useState(moods[0]);
@@ -90,10 +133,25 @@ const Index = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         
         <header className="text-center animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-2">
-            Моя жизнь в цифрах
-          </h1>
-          <p className="text-muted-foreground text-lg">Создай красивую мозаику своей жизни</p>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex-1" />
+            <div className="flex-1 text-center">
+              <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-2">
+                Моя жизнь в цифрах
+              </h1>
+              <p className="text-muted-foreground text-lg">Создай красивую мозаику своей жизни</p>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <Icon name="LogOut" size={18} />
+                Выход
+              </Button>
+            </div>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
