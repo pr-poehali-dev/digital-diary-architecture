@@ -37,6 +37,8 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+  const [currentNote, setCurrentNote] = useState('');
+  const [selectedMood, setSelectedMood] = useState(moods[0]);
   
   const [records, setRecords] = useState<DayRecord[]>([
     { date: '2025-12-18', mood: 'Отлично', emoji: '😊', note: 'Начал работу над проектом мечты!', color: 'bg-pastel-green' },
@@ -136,9 +138,6 @@ const Index = () => {
   if (showOnboarding) {
     return <OnboardingWizard onComplete={handleOnboardingComplete} />;
   }
-
-  const [currentNote, setCurrentNote] = useState('');
-  const [selectedMood, setSelectedMood] = useState(moods[0]);
 
   const getDaysInMonth = () => {
     const year = 2025;
