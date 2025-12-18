@@ -12,19 +12,6 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [showLanding, setShowLanding] = useState(true);
-
-  useEffect(() => {
-    const hasVisited = localStorage.getItem('has_visited');
-    const isAuthenticated = localStorage.getItem('auth_token');
-    
-    if (hasVisited || isAuthenticated) {
-      setShowLanding(false);
-    } else {
-      localStorage.setItem('has_visited', 'true');
-    }
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -32,7 +19,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={showLanding ? <Landing /> : <Index />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/app" element={<Index />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

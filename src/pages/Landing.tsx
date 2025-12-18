@@ -25,7 +25,7 @@ const Landing = () => {
   ];
 
   const handleGetStarted = () => {
-    navigate('/');
+    navigate('/app');
   };
 
   return (
