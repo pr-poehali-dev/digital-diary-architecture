@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AuthForm from '@/components/AuthForm';
+import OnboardingWizard from '@/components/OnboardingWizard';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,6 +35,8 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<{ id: number; email: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
   
   const [records, setRecords] = useState<DayRecord[]>([
     { date: '2025-12-18', mood: 'Отлично', emoji: '😊', note: 'Начал работу над проектом мечты!', color: 'bg-pastel-green' },
@@ -47,14 +50,65 @@ const Index = () => {
     
     if (token && savedUser) {
       setIsAuthenticated(true);
-      setUser(JSON.parse(savedUser));
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
+      checkOnboardingStatus(userData.id);
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
+
+  const checkOnboardingStatus = async (userId: number) => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/35cbf41a-30cb-4c90-a6c8-4752c909ee14', {
+        method: 'GET',
+        headers: {
+          'X-Auth-Token': userId.toString(),
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (data.onboarding_completed && data.metrics.length > 0) {
+        setSelectedMetrics(data.metrics);
+        setShowOnboarding(false);
+      } else {
+        setShowOnboarding(true);
+      }
+    } catch (error) {
+      console.error('Error checking onboarding:', error);
+      setShowOnboarding(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAuthSuccess = (token: string, userData: { id: number; email: string }) => {
     setIsAuthenticated(true);
     setUser(userData);
+    checkOnboardingStatus(userData.id);
+  };
+
+  const handleOnboardingComplete = async (metrics: string[]) => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch('https://functions.poehali.dev/35cbf41a-30cb-4c90-a6c8-4752c909ee14', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': user.id.toString(),
+        },
+        body: JSON.stringify({ metrics }),
+      });
+      
+      if (response.ok) {
+        setSelectedMetrics(metrics);
+        setShowOnboarding(false);
+      }
+    } catch (error) {
+      console.error('Error saving metrics:', error);
+    }
   };
 
   const handleLogout = () => {
@@ -77,6 +131,10 @@ const Index = () => {
 
   if (!isAuthenticated) {
     return <AuthForm onSuccess={handleAuthSuccess} />;
+  }
+
+  if (showOnboarding) {
+    return <OnboardingWizard onComplete={handleOnboardingComplete} />;
   }
 
   const [currentNote, setCurrentNote] = useState('');

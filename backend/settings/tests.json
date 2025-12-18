@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "Get user settings",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "1"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "metrics": "array",
+        "onboarding_completed": "boolean"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Save user metrics",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "1"
+      },
+      "body": {
+        "metrics": ["mood", "sleep", "note"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": "boolean",
+        "metrics": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
