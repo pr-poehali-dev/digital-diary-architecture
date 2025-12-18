@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AuthForm from '@/components/AuthForm';
 import OnboardingWizard from '@/components/OnboardingWizard';
+import CalendarMosaic from '@/components/CalendarMosaic';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,15 +14,15 @@ interface DayRecord {
   mood: string;
   emoji: string;
   note: string;
-  color: string;
+  moodScore: number;
 }
 
 const moods = [
-  { emoji: '😊', label: 'Отлично', color: 'bg-pastel-green' },
-  { emoji: '😌', label: 'Хорошо', color: 'bg-pastel-blue' },
-  { emoji: '😐', label: 'Нормально', color: 'bg-pastel-yellow' },
-  { emoji: '😔', label: 'Грустно', color: 'bg-pastel-peach' },
-  { emoji: '😫', label: 'Плохо', color: 'bg-pastel-pink' },
+  { emoji: '😊', label: 'Отлично', score: 5 },
+  { emoji: '😌', label: 'Хорошо', score: 4 },
+  { emoji: '😐', label: 'Нормально', score: 3 },
+  { emoji: '😔', label: 'Грустно', score: 2 },
+  { emoji: '😫', label: 'Плохо', score: 1 },
 ];
 
 const achievements = [
@@ -41,9 +42,13 @@ const Index = () => {
   const [selectedMood, setSelectedMood] = useState(moods[0]);
   
   const [records, setRecords] = useState<DayRecord[]>([
-    { date: '2025-12-18', mood: 'Отлично', emoji: '😊', note: 'Начал работу над проектом мечты!', color: 'bg-pastel-green' },
-    { date: '2025-12-17', mood: 'Хорошо', emoji: '😌', note: 'Продуктивный день', color: 'bg-pastel-blue' },
-    { date: '2025-12-16', mood: 'Нормально', emoji: '😐', note: 'Обычный день', color: 'bg-pastel-yellow' },
+    { date: '2025-12-18', mood: 'Отлично', emoji: '😊', note: 'Начал работу над проектом мечты!', moodScore: 5 },
+    { date: '2025-12-17', mood: 'Хорошо', emoji: '😌', note: 'Продуктивный день', moodScore: 4 },
+    { date: '2025-12-16', mood: 'Нормально', emoji: '😐', note: 'Обычный день', moodScore: 3 },
+    { date: '2025-12-15', mood: 'Грустно', emoji: '😔', note: 'Сложный день', moodScore: 2 },
+    { date: '2025-12-14', mood: 'Хорошо', emoji: '😌', note: 'Встреча с друзьями', moodScore: 4 },
+    { date: '2025-12-13', mood: 'Отлично', emoji: '😊', note: 'Закончил важный проект', moodScore: 5 },
+    { date: '2025-12-12', mood: 'Нормально', emoji: '😐', note: 'Рабочий день', moodScore: 3 },
   ]);
 
   useEffect(() => {
@@ -166,7 +171,7 @@ const Index = () => {
       mood: selectedMood.label,
       emoji: selectedMood.emoji,
       note: currentNote,
-      color: selectedMood.color,
+      moodScore: selectedMood.score,
     };
     
     setRecords(prev => {
@@ -213,47 +218,14 @@ const Index = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          <Card className="lg:col-span-2 p-6 animate-scale-in shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold">Декабрь 2025</h2>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon">
-                  <Icon name="ChevronLeft" size={20} />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <Icon name="ChevronRight" size={20} />
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-7 gap-2 mb-4">
-              {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
-                <div key={day} className="text-center text-sm font-medium text-muted-foreground">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-2">
-              {getDaysInMonth().map((item, idx) => (
-                <div key={idx} className="aspect-square">
-                  {item ? (
-                    <button
-                      className={`w-full h-full rounded-xl flex items-center justify-center text-lg font-medium transition-all hover:scale-110 hover:shadow-lg ${
-                        item.record 
-                          ? `${item.record.color} text-foreground` 
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                      }`}
-                    >
-                      {item.record ? item.record.emoji : item.day}
-                    </button>
-                  ) : (
-                    <div />
-                  )}
-                </div>
-              ))}
-            </div>
-          </Card>
+          <div className="lg:col-span-2">
+            <CalendarMosaic 
+              year={2025} 
+              month={11} 
+              records={records}
+              onDayClick={(date) => console.log('Clicked:', date)}
+            />
+          </div>
 
           <div className="space-y-6">
             
@@ -271,9 +243,14 @@ const Index = () => {
                       onClick={() => setSelectedMood(mood)}
                       className={`p-3 rounded-xl text-3xl transition-all hover:scale-110 ${
                         selectedMood.emoji === mood.emoji 
-                          ? `${mood.color} ring-4 ring-primary/50` 
-                          : `${mood.color} opacity-50 hover:opacity-100`
+                          ? 'ring-4 ring-primary/50' 
+                          : 'opacity-50 hover:opacity-100'
                       }`}
+                      style={{
+                        backgroundColor: selectedMood.emoji === mood.emoji 
+                          ? `hsl(${120 - (5 - mood.score) * 30}, 70%, ${45 + mood.score * 5}%)`
+                          : `hsl(${120 - (5 - mood.score) * 30}, 70%, ${45 + mood.score * 5}%, 0.3)`
+                      }}
                     >
                       {mood.emoji}
                     </button>
@@ -375,7 +352,10 @@ const Index = () => {
             {records.slice(0, 5).map(record => (
               <div 
                 key={record.date} 
-                className={`p-4 rounded-xl ${record.color} hover:shadow-md transition-all`}
+                className="p-4 rounded-xl hover:shadow-md transition-all"
+                style={{
+                  backgroundColor: `hsl(${120 - (5 - record.moodScore) * 30}, 70%, ${45 + record.moodScore * 5}%, 0.2)`
+                }}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-3">
